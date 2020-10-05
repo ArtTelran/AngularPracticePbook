@@ -1,39 +1,30 @@
 name: Run Karma Tests
 
 on:
-  # Trigger the workflow on push or pull request,
-  # but only for the master branch
   push:
     branches:
-      - master
- # pull_request:
- #  branches:
- # - master
+    - main    
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [12.x]
-
     steps:
-      - uses: actions/checkout@v1
+    - uses: actions/checkout@v1
 
-    #  - name: Cache node modules
-     #   uses: actions/cache@v1
-      #  with:
-      #    path: ~/.npm
-       #   key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-       #   restore-keys: |
-        #    ${{ runner.os }}-node-
+    - uses: actions/cache@v1
+      id: cache
+      with:
+        path: "./ArtemPbookPractice/phonebook-ui/package.json"
+        key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-npm-
+    - name: Install dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: npm ci
 
-      - name: Node ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
+    - name: Unit Test
+      run: npm test
 
-      - name: npm ci and npm run build
-        run: |
-          npm ci
-          npm run build:ci
+    - name: Local action test
+      uses: ./
+      id: version
